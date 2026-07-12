@@ -1,5 +1,7 @@
 "use client";
 
+import { useAuth } from "@/components/auth/AuthProvider";
+import { AuthLoadingSkeleton } from "@/components/auth/LoadingSkeleton";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { Toaster } from "sonner";
@@ -15,6 +17,7 @@ interface AppShellProps {
 
 export function AppShell({ children, title, subtitle }: AppShellProps) {
   const { theme, setTheme } = useThemeStore();
+  const { isLoading } = useAuth();
 
   // Init theme on mount
   useEffect(() => {
@@ -26,6 +29,10 @@ export function AppShell({ children, title, subtitle }: AppShellProps) {
   useEffect(() => {
     localStorage.setItem("gp-theme", theme);
   }, [theme]);
+
+  if (isLoading) {
+    return <AuthLoadingSkeleton />;
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-[hsl(var(--background))]">
