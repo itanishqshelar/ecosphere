@@ -62,7 +62,7 @@ GreenPulse AI is a comprehensive enterprise platform designed to streamline Corp
    npm run dev
    ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+5. Open [http://localhost:3000] in your browser.
 
 ## 📂 Project Structure
 
