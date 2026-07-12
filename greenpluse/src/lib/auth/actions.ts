@@ -2,7 +2,6 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { redirect } from "next/navigation";
 
 function getBaseUrl() {
   if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL;
@@ -15,32 +14,28 @@ export async function signUp(formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
 
-  const supabase = await createClient();
+  const admin = createAdminClient();
 
-  const { data: authData, error: signUpError } = await supabase.auth.signUp({
+  // Create the account already email-confirmed so the user can sign in
+  // immediately, with no email round-trip. Uses the service-role admin API.
+  const { data: created, error: createError } = await admin.auth.admin.createUser({
     email,
     password,
-    options: {
-      data: { name },
-      emailRedirectTo: `${getBaseUrl()}/auth/callback`,
-    },
+    email_confirm: true,
+    user_metadata: { name },
   });
 
-  if (signUpError) {
-    return { success: false as const, error: { message: signUpError.message, code: signUpError.code } };
+  if (createError) {
+    return { success: false as const, error: { message: createError.message } };
   }
 
-  if (!authData.user) {
+  if (!created.user) {
     return { success: false as const, error: { message: "Failed to create account" } };
   }
 
-  // When email confirmation is enabled, signUp() returns no session, so the
-  // user is not yet authenticated and can't satisfy the employees RLS policy.
-  // Provision the profile with the service-role client (bypasses RLS) — this
-  // is a trusted server-side step keyed to the just-created auth user's id.
-  const admin = createAdminClient();
+  // Provision the employee profile (admin client bypasses RLS).
   const { error: profileError } = await admin.from("employees").upsert({
-    id: authData.user.id,
+    id: created.user.id,
     name,
     email,
     role: "employee",
@@ -51,6 +46,15 @@ export async function signUp(formData: FormData) {
 
   if (profileError) {
     return { success: false as const, error: { message: profileError.message } };
+  }
+
+  // Sign the user in right away so a session cookie is set and the client
+  // can navigate straight to the dashboard.
+  const supabase = await createClient();
+  const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+
+  if (signInError) {
+    return { success: false as const, error: { message: signInError.message } };
   }
 
   return { success: true as const };
@@ -68,6 +72,26 @@ export async function signIn(formData: FormData) {
   });
 
   if (error) {
+    // A common cause of "Invalid login credentials" is an account that was
+    // created via Google (OAuth) and therefore has no password. Detect that
+    // and return a clearer, actionable message.
+    if (error.code === "invalid_credentials" || error.status === 400) {
+      const admin = createAdminClient();
+      const { data: list } = await admin.auth.admin.listUsers({ perPage: 1000 });
+      const existing = list?.users.find(
+        (u) => u.email?.toLowerCase() === email.toLowerCase()
+      );
+      const providers: string[] = existing?.app_metadata?.providers ?? [];
+      if (existing && !providers.includes("email")) {
+        return {
+          success: false as const,
+          error: {
+            message:
+              "This account uses Google sign-in. Please continue with Google instead of a password.",
+          },
+        };
+      }
+    }
     return { success: false as const, error: { message: error.message, code: error.code } };
   }
 
@@ -116,7 +140,7 @@ export async function signInWithGoogle() {
   }
 
   if (data.url) {
-    redirect(data.url);
+    return { success: true as const, url: data.url };
   }
 
   return { success: false as const, error: { message: "Failed to initialize Google sign in" } };
@@ -126,7 +150,7 @@ export async function signOut() {
   const supabase = await createClient();
   const { error } = await supabase.auth.signOut();
   if (error) return { success: false as const, error: { message: error.message } };
-  redirect("/auth/login");
+  return { success: true as const };
 }
 
 export async function forgotPassword(formData: FormData) {

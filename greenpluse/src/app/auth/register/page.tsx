@@ -2,6 +2,7 @@
 
 import { useState, useActionState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { FormInput } from "@/components/auth/FormInput";
@@ -9,14 +10,14 @@ import { PasswordInput } from "@/components/auth/PasswordInput";
 import { GoogleButton } from "@/components/auth/GoogleButton";
 import { Divider } from "@/components/auth/Divider";
 import { signUp } from "@/lib/auth/actions";
-import { ArrowRight, CheckCircle } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 type FormState = { error: string | null };
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [password, setPassword] = useState("");
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  const [success, setSuccess] = useState(false);
 
   const [state, formAction, pending] = useActionState(async (_prev: FormState, formData: FormData) => {
     setFormErrors({});
@@ -41,32 +42,13 @@ export default function RegisterPage() {
 
     const result = await signUp(formData);
     if (result.success) {
-      setSuccess(true);
+      // Account created and signed in — go straight to the app.
+      router.push("/dashboard");
+      router.refresh();
       return { error: null };
     }
     return { error: result.error?.message ?? "Registration failed" };
   }, { error: null });
-
-  if (success) {
-    return (
-      <AuthLayout>
-        <AuthCard title="Check your email" description="We sent a verification link to your email address.">
-          <div className="flex flex-col items-center py-8">
-            <div className="w-16 h-16 rounded-2xl bg-primary-500/10 flex items-center justify-center mb-4">
-              <CheckCircle className="w-8 h-8 text-primary-500" />
-            </div>
-            <p className="text-sm text-center text-[hsl(var(--foreground-muted))] leading-relaxed">
-              Click the link in the email to verify your account. If you don&apos;t see it, check your spam folder.
-            </p>
-            <Link href="/auth/login" className="btn-primary mt-6">
-              Go to sign in
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-        </AuthCard>
-      </AuthLayout>
-    );
-  }
 
   return (
     <AuthLayout>

@@ -14,6 +14,8 @@ export function GoogleButton() {
       const result = await signInWithGoogle();
       if (!result.success) {
         setError(result.error.message);
+      } else if (result.url) {
+        window.location.href = result.url;
       }
     } catch {
       setError("Failed to sign in with Google");
