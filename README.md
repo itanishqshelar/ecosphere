@@ -1,85 +1,379 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/itanishqshelar/ecosphere/main/public/logo.png" alt="GreenPulse AI Logo" width="120" style="border-radius: 20px;"/>
-  <h1>🌿 GreenPulse AI</h1>
-  <p><strong>Intelligent ESG tracking, carbon accounting, and workforce gamification platform.</strong></p>
-  
-  <p>
-    <img src="https://img.shields.io/badge/Next.js_15-000000?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js" />
-    <img src="https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
-    <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
-    <img src="https://img.shields.io/badge/Tailwind_CSS_v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
-    <img src="https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase" />
-    <img src="https://img.shields.io/badge/Zustand-764ABC?style=for-the-badge&logo=react&logoColor=white" alt="Zustand" />
-  </p>
+
+<img src="https://raw.githubusercontent.com/itanishqshelar/ecosphere/main/public/logo.png" alt="GreenPulse AI Logo" width="140"/>
+
+# 🌿 GreenPulse AI
+
+### **Enterprise ESG Intelligence Platform**
+### *Track • Measure • Engage • Sustain*
+
+An AI-powered ESG (Environmental, Social & Governance) platform that helps organizations automate sustainability reporting, monitor carbon emissions, improve governance compliance, and build an environmentally conscious workforce through intelligent gamification.
+
+<p align="center">
+
+<img src="https://img.shields.io/badge/Next.js_15-black?style=for-the-badge&logo=next.js"/>
+<img src="https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react"/>
+<img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white"/>
+<img src="https://img.shields.io/badge/TailwindCSS_v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white"/>
+<img src="https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white"/>
+<img src="https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white"/>
+<img src="https://img.shields.io/badge/Zustand-764ABC?style=for-the-badge"/>
+<img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge"/>
+
+</p>
+
+---
+
+### 🌍 Building Sustainable Enterprises Through AI
+
+*"Measure sustainability. Drive accountability. Inspire change."*
+
 </div>
 
-<hr />
+---
 
-## 🌍 Overview
+# 📖 Overview
 
-GreenPulse AI is a comprehensive enterprise platform designed to streamline Corporate Sustainability and ESG (Environmental, Social, and Governance) reporting. It empowers organizations to automatically track carbon emissions, enforce compliance policies, manage CSR events, and engage employees through a robust gamification system.
+GreenPulse AI is an intelligent ESG management platform designed to simplify corporate sustainability reporting while actively engaging employees in environmental initiatives.
 
-## ✨ Key Features
+Instead of relying on spreadsheets and disconnected workflows, GreenPulse centralizes **Carbon Accounting**, **Governance Compliance**, **CSR Activities**, and **Employee Sustainability Programs** into a single AI-powered platform.
 
-- **📊 Dynamic Dashboard**: Real-time overview of your company's ESG score, broken down by department, with historical trends and goal tracking.
-- **💨 Carbon Accounting**: Log carbon transactions with pre-calculated emission factors (e.g., Grid Electricity, Diesel Fuel, Air Travel).
-- **🛡️ Governance & Compliance**: Distribute policies and track employee acknowledgements in real-time.
-- **🤝 CSR Activities**: Create volunteering events and let employees join and earn points.
-- **🏆 Gamification Engine**: 
-  - **Challenges**: Engage the workforce with eco-friendly challenges (e.g., "Zero Plastic Week").
-  - **Badges & XP**: Employees earn experience points (XP) and unlock badges for their sustainable actions.
-  - **Leaderboard**: Foster healthy competition with an all-time and monthly leaderboard.
-  - **Rewards Store**: Employees can redeem their earned XP for perks like vouchers, movie tickets, or extra leave days.
+The platform empowers organizations to:
 
-## 🚀 Getting Started
+- 🌱 Monitor environmental impact
+- 📊 Generate ESG insights
+- 🏢 Improve governance compliance
+- 🤝 Increase employee participation
+- 🏆 Reward sustainable behaviour
+- 📈 Build a measurable sustainability culture
 
-### Prerequisites
+---
 
-- Node.js (v18 or higher)
-- Supabase Project (PostgreSQL)
+# ✨ Core Features
 
-### Installation
+## 📊 ESG Analytics Dashboard
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/itanishqshelar/ecosphere.git
-   cd ecosphere/greenpluse
-   ```
+- Organization-wide ESG Score
+- Department-wise sustainability metrics
+- Historical trend visualization
+- Sustainability goals tracking
+- KPI monitoring
+- Interactive analytics
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+---
 
-3. Set up environment variables by creating a `.env.local` file in `greenpluse/`:
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-   ```
+## 🌍 Carbon Accounting
 
-4. Run the development server:
-   ```bash
-   npm run dev
-   ```
+Track and monitor emissions across multiple sources.
 
-5. Open [http://localhost:3000] in your browser.
+Supported categories include:
 
-## 📂 Project Structure
+- ⚡ Electricity Consumption
+- 🚗 Employee Transportation
+- ✈️ Business Travel
+- ⛽ Diesel & Fuel Usage
+- 🏭 Manufacturing Emissions
+- 📦 Logistics
 
-```
+Features
+
+- Automatic carbon calculations
+- Emission factor library
+- Monthly reports
+- Historical records
+
+---
+
+## 🛡 Governance & Compliance
+
+Digitize compliance management.
+
+Features
+
+- Company policy distribution
+- Employee acknowledgements
+- Audit-ready reports
+- Compliance status tracking
+- Due-date reminders
+
+---
+
+## 🤝 CSR Management
+
+Organize and manage CSR initiatives.
+
+- Volunteering Events
+- Plantation Drives
+- NGO Partnerships
+- Employee Registration
+- Attendance Tracking
+- Participation Reports
+
+---
+
+## 🏆 Sustainability Gamification
+
+Increase employee engagement through gamification.
+
+### 🎯 Challenges
+
+Examples:
+
+- Zero Plastic Week
+- Public Transport Month
+- Save Electricity Challenge
+- Tree Plantation Drive
+
+---
+
+### ⭐ XP System
+
+Employees earn XP for:
+
+- Completing challenges
+- Participating in CSR events
+- Reducing emissions
+- Reading sustainability policies
+- Daily green habits
+
+---
+
+### 🥇 Badges
+
+Unlock achievements like
+
+- 🌱 Green Starter
+- 🌍 Eco Warrior
+- 🌿 Sustainability Champion
+- 🏆 Carbon Hero
+- 🌎 Earth Guardian
+
+---
+
+### 🏅 Leaderboards
+
+- Monthly Rankings
+- Department Rankings
+- Organization Rankings
+- Individual Performance
+
+---
+
+### 🎁 Rewards Store
+
+Redeem XP for rewards
+
+- Amazon Vouchers
+- Movie Tickets
+- Gift Cards
+- Extra Leave
+- Company Merchandise
+
+---
+
+# 🤖 AI Capabilities
+
+GreenPulse AI leverages intelligent automation to enhance sustainability management.
+
+- AI-powered ESG insights
+- Carbon footprint estimation
+- Smart sustainability recommendations
+- Automated reporting
+- Intelligent analytics
+- Workforce engagement predictions
+
+---
+
+# 🏗 Tech Stack
+
+| Category | Technologies |
+|-----------|-------------|
+| Frontend | Next.js 15, React 19, TypeScript |
+| Styling | Tailwind CSS v4 |
+| State Management | Zustand |
+| Backend | Supabase |
+| Database | PostgreSQL |
+| Authentication | Supabase Auth |
+| Animations | Framer Motion |
+| UI Components | Radix UI |
+| Icons | Lucide React |
+
+---
+
+# 📂 Project Structure
+
+```text
+greenpulse-ai/
+
 ├── src/
-│   ├── app/           # Next.js App Router (Pages & API routes)
-│   ├── components/    # Reusable UI components & Icons
-│   ├── lib/           # Supabase clients, DB utilities, and Type definitions
-│   └── styles/        # Global CSS (Tailwind v4 tokens)
-└── supabase/          # Supabase configuration, schema, and seed files
+│
+├── app/
+│   ├── dashboard/
+│   ├── carbon/
+│   ├── governance/
+│   ├── csr/
+│   ├── rewards/
+│   └── leaderboard/
+│
+├── components/
+│   ├── ui/
+│   ├── charts/
+│   ├── dashboard/
+│   └── shared/
+│
+├── lib/
+│   ├── supabase/
+│   ├── database/
+│   ├── utils/
+│   └── types/
+│
+├── hooks/
+│
+├── store/
+│
+├── styles/
+│
+└── supabase/
+    ├── schema.sql
+    ├── migrations/
+    └── seed.sql
 ```
 
-## 🎨 Design System
+---
 
-GreenPulse AI utilizes a modern, sleek aesthetic built entirely with **Tailwind CSS v4** and customized with CSS Variables. 
-It features a premium "Glassmorphism" effect, seamless micro-animations with **Framer Motion**, and accessible interactive components via **Radix UI**.
+# 🚀 Getting Started
 
-## 📄 License
+## Prerequisites
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+- Node.js 18+
+- npm / pnpm
+- Supabase Project
+
+---
+
+## Installation
+
+Clone the repository
+
+```bash
+git clone https://github.com/itanishqshelar/ecosphere.git
+
+cd ecosphere/greenpluse
+```
+
+Install dependencies
+
+```bash
+npm install
+```
+
+Create environment variables
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=YOUR_SUPABASE_URL
+
+NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+```
+
+Run development server
+
+```bash
+npm run dev
+```
+
+Visit
+
+```
+http://localhost:3000
+```
+
+---
+
+# 🎨 Design Philosophy
+
+GreenPulse AI follows a modern enterprise design language.
+
+✨ Glassmorphism
+
+🎨 Tailwind CSS v4
+
+⚡ Smooth Micro-interactions
+
+📱 Fully Responsive
+
+♿ Accessibility First
+
+🌙 Modern Enterprise UI
+
+---
+
+# 🌟 Why GreenPulse AI?
+
+✔ Enterprise Ready
+
+✔ AI Powered
+
+✔ Gamified Employee Experience
+
+✔ ESG Compliance
+
+✔ Carbon Accounting
+
+✔ Beautiful Dashboard
+
+✔ Scalable Architecture
+
+✔ Modern Tech Stack
+
+---
+
+# 👨‍💻 Team
+
+GreenPulse AI was proudly built by
+
+| Team Member | Role |
+|-------------|------|
+| **Tanishq Shelar** | Full Stack Developer |
+| **Vinayak Kundar** | AI & Backend Developer |
+| **Avanish Kasar** | Backend & Integration Developer |
+| **Disha Lalwani** | Frontend & UI/UX Developer |
+
+---
+
+# 🤝 Contributing
+
+Contributions, issues, and feature requests are welcome!
+
+If you'd like to contribute:
+
+```bash
+Fork the repository
+
+Create your feature branch
+
+Commit your changes
+
+Push your branch
+
+Open a Pull Request
+```
+
+---
+
+# 📜 License
+
+This project is licensed under the **MIT License**.
+
+See the **LICENSE** file for more details.
+
+---
+
+<div align="center">
+
+### 🌱 Together, let's build a more sustainable future.
+
+**GreenPulse AI • ESG Intelligence Platform**
+
+Made with ❤️ by Team GreenPulse
+
+</div>
