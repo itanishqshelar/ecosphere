@@ -291,7 +291,4 @@ export async function ensureEmployeeProfile() {
     if (error) return null;
     return newEmployee;
   }
-
-  if (error) return null;
-  return newEmployee;
 }
