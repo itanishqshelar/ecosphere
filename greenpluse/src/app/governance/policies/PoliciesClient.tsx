@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Plus, CheckCircle, Clock, XCircle, Shield } from "lucide-react";
+import Link from "next/link";
 import { cn, getStatusColor } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -63,7 +64,7 @@ export function PoliciesClient({ policies: initial, stats }: Props) {
             <h3 className="section-title">Company Policies</h3>
             <p className="section-subtitle">Manage and track employee acknowledgements</p>
           </div>
-          {isAdmin && <button className="btn-primary"><Plus className="w-4 h-4" /> New Policy</button>}
+          {isAdmin && <Link href="/governance/policies/create" className="btn-primary"><Plus className="w-4 h-4" /> New Policy</Link>}
         </div>
 
         <div className="divide-y" style={{ borderColor: "hsl(var(--border-muted))" }}>
