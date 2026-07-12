@@ -26,11 +26,21 @@ export function useAuth() {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const { user, isLoading, isFirstTime, setUser, setLoading, setFirstTime } = useAuthStore();
+  const {
+    user,
+    isLoading,
+    isFirstTime,
+    setUser,
+    setSession,
+    setLoading,
+    setFirstTime,
+  } = useAuthStore();
 
   const refresh = useCallback(async () => {
     const supabase = createClient();
     const { data: { session } } = await supabase.auth.getSession();
+
+    setSession(session?.user ?? null);
 
     if (!session?.user) {
       setUser(null);
@@ -88,9 +98,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     setLoading(false);
-  }, [setUser, setLoading, setFirstTime]);
+  }, [setUser, setSession, setLoading, setFirstTime]);
 
-  // Welcome screen check — runs after auth state is resolved
   useEffect(() => {
     if (!isLoading && user) {
       const hasSeenWelcome = localStorage.getItem("gp-welcome-seen");
@@ -106,10 +115,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     refresh();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        setSession(session?.user ?? null);
         refresh();
       } else if (event === "SIGNED_OUT") {
+        setSession(null);
         setUser(null);
         setLoading(false);
         router.push("/auth/login");
@@ -117,7 +128,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => subscription.unsubscribe();
-  }, [refresh, setUser, setLoading, router]);
+  }, [refresh, setSession, setUser, setLoading, router]);
 
   return (
     <AuthContext.Provider value={{ user, isLoading, isFirstTime, refresh }}>

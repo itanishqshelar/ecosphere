@@ -1,12 +1,22 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Plus, Wind, TrendingDown, Flame, Zap, X } from "lucide-react";
-import { cn, getStatusColor } from "@/lib/utils";
+import {
+  FileImage,
+  Flame,
+  Loader2,
+  Plus,
+  TrendingDown,
+  Upload,
+  Wind,
+  X,
+  Zap,
+} from "lucide-react";
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
-import type { CarbonTransaction, EmissionFactor, Department } from "@/lib/types";
+import { cn, getStatusColor } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
+import type { CarbonTransaction, Department, EmissionFactor } from "@/lib/types";
 
 interface Props {
   transactions: CarbonTransaction[];
@@ -15,78 +25,179 @@ interface Props {
   departments: Department[];
 }
 
+type ReceiptAutofillResponse = {
+  activity?: string;
+  emission_factor_id?: string;
+  quantity?: number;
+  date?: string;
+  note?: string;
+};
+
+const createInitialForm = (departments: Department[], emissionFactors: EmissionFactor[]) => ({
+  department_id: departments[0]?.id ?? "",
+  activity: "Electricity",
+  emission_factor_id: emissionFactors[0]?.id ?? "",
+  quantity: "",
+  date: new Date().toISOString().split("T")[0],
+});
+
+function getErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return fallback;
+}
+
 export function CarbonClient({ transactions, emissionFactors, stats, departments }: Props) {
   const [showModal, setShowModal] = useState(false);
   const [txns, setTxns] = useState(transactions);
-  const [form, setForm] = useState({
-    department_id: departments[0]?.id ?? "",
-    activity: "Electricity",
-    emission_factor_id: emissionFactors[0]?.id ?? "",
-    quantity: "",
-    date: new Date().toISOString().split("T")[0],
-  });
+  const [form, setForm] = useState(() => createInitialForm(departments, emissionFactors));
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [receiptName, setReceiptName] = useState("");
+  const [receiptNote, setReceiptNote] = useState("");
+  const [isAnalyzingReceipt, setIsAnalyzingReceipt] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const selectedFactor = emissionFactors.find((f) => f.id === form.emission_factor_id);
+  const selectedFactor = emissionFactors.find((factor) => factor.id === form.emission_factor_id);
   const estimatedCO2 = selectedFactor && form.quantity
     ? (parseFloat(form.quantity) * selectedFactor.co2_per_unit).toFixed(2)
-    : "—";
+    : "--";
+
+  const resetModal = () => {
+    setShowModal(false);
+    setForm(createInitialForm(departments, emissionFactors));
+    setReceiptFile(null);
+    setReceiptName("");
+    setReceiptNote("");
+    setIsAnalyzingReceipt(false);
+    setIsSaving(false);
+  };
+
+  const handleReceiptUpload = async (file: File) => {
+    setReceiptFile(file);
+    setReceiptName(file.name);
+    setReceiptNote("");
+    setIsAnalyzingReceipt(true);
+
+    try {
+      const body = new FormData();
+      body.append("receipt", file);
+      body.append(
+        "emissionFactors",
+        JSON.stringify(
+          emissionFactors.map((factor) => ({
+            id: factor.id,
+            name: factor.name,
+            category: factor.category,
+            unit: factor.unit,
+            co2_per_unit: factor.co2_per_unit,
+          })),
+        ),
+      );
+
+      const response = await fetch("/api/carbon/receipt-analyze", {
+        method: "POST",
+        body,
+      });
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Could not analyze the receipt");
+      }
+
+      const autofill = payload as ReceiptAutofillResponse;
+      setForm((current) => ({
+        ...current,
+        activity: autofill.activity ?? current.activity,
+        emission_factor_id: autofill.emission_factor_id ?? current.emission_factor_id,
+        quantity: typeof autofill.quantity === "number" ? String(autofill.quantity) : current.quantity,
+        date: autofill.date ?? current.date,
+      }));
+      setReceiptNote(autofill.note ?? "Receipt analyzed. Please review the autofilled values before saving.");
+      toast.success("Receipt analyzed and form autofilled");
+    } catch (err: unknown) {
+      const message = getErrorMessage(err, "Could not analyze the receipt");
+      setReceiptNote(message);
+      toast.error(message);
+    } finally {
+      setIsAnalyzingReceipt(false);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!form.quantity || !form.department_id) {
       toast.error("Please fill all fields");
       return;
     }
+
     try {
+      setIsSaving(true);
       const supabase = createClient();
-      const co2_kg = parseFloat(form.quantity) * (selectedFactor?.co2_per_unit ?? 0);
+      const co2Kg = parseFloat(form.quantity) * (selectedFactor?.co2_per_unit ?? 0);
       const { data, error } = await supabase
         .from("carbon_transactions")
-        .insert({ ...form, quantity: parseFloat(form.quantity), unit: selectedFactor?.unit ?? "unit", co2_kg, status: "pending" })
-        .select(`*, department:departments(id,name), emission_factor:emission_factors(id,name,unit)`)
+        .insert({
+          ...form,
+          quantity: parseFloat(form.quantity),
+          unit: selectedFactor?.unit ?? "unit",
+          co2_kg: co2Kg,
+          status: "pending",
+        })
+        .select("*, department:departments(id,name), emission_factor:emission_factors(id,name,unit)")
         .single();
-      if (error) throw error;
+
+      if (error) {
+        throw error;
+      }
+
       setTxns([data as CarbonTransaction, ...txns]);
-      setShowModal(false);
+      resetModal();
       toast.success("Carbon transaction recorded!");
-    } catch (err: any) {
-      toast.error(err.message ?? "Failed to save");
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Failed to save"));
+    } finally {
+      setIsSaving(false);
     }
   };
 
   const statCards = [
-    { label: "Total Emissions",  value: `${(stats.totalKg/1000).toFixed(1)} tCO₂`, icon: Wind,        color: "text-primary-500", bg: "bg-primary-500/10" },
-    { label: "Carbon Saved",     value: `${(stats.savedKg/1000).toFixed(1)} tCO₂`, icon: TrendingDown, color: "text-emerald-500", bg: "bg-emerald-500/10" },
-    { label: "Fuel Emissions",   value: `${(stats.fuelKg/1000).toFixed(1)} tCO₂`,  icon: Flame,        color: "text-orange-500",  bg: "bg-orange-500/10"  },
-    { label: "Electricity",      value: `${(stats.electricKg/1000).toFixed(1)} tCO₂`,icon: Zap,        color: "text-accent-500",  bg: "bg-accent-500/10"  },
+    { label: "Total Emissions", value: `${(stats.totalKg / 1000).toFixed(1)} tCO2`, icon: Wind, color: "text-primary-500", bg: "bg-primary-500/10" },
+    { label: "Carbon Saved", value: `${(stats.savedKg / 1000).toFixed(1)} tCO2`, icon: TrendingDown, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+    { label: "Fuel Emissions", value: `${(stats.fuelKg / 1000).toFixed(1)} tCO2`, icon: Flame, color: "text-orange-500", bg: "bg-orange-500/10" },
+    { label: "Electricity", value: `${(stats.electricKg / 1000).toFixed(1)} tCO2`, icon: Zap, color: "text-accent-500", bg: "bg-accent-500/10" },
   ];
 
   return (
     <div className="page-wrapper">
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {statCards.map((s, i) => (
-          <motion.div key={s.label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
-            className="card p-4 flex items-center gap-3">
-            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0", s.bg)}>
-              <s.icon className={cn("w-5 h-5", s.color)} />
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {statCards.map((stat, index) => (
+          <motion.div
+            key={stat.label}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.08 }}
+            className="card flex items-center gap-3 p-4"
+          >
+            <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-xl", stat.bg)}>
+              <stat.icon className={cn("h-5 w-5", stat.color)} />
             </div>
             <div>
-              <p className="text-xs" style={{ color: "hsl(var(--foreground-muted))" }}>{s.label}</p>
-              <p className="text-base font-bold" style={{ color: "hsl(var(--foreground))" }}>{s.value}</p>
+              <p className="text-xs" style={{ color: "hsl(var(--foreground-muted))" }}>{stat.label}</p>
+              <p className="text-base font-bold" style={{ color: "hsl(var(--foreground))" }}>{stat.value}</p>
             </div>
           </motion.div>
         ))}
       </div>
 
-      {/* Transactions Table */}
       <div className="card overflow-hidden">
-        <div className="flex items-center justify-between p-5 border-b" style={{ borderColor: "hsl(var(--border-muted))" }}>
+        <div className="flex items-center justify-between border-b p-5" style={{ borderColor: "hsl(var(--border-muted))" }}>
           <div>
             <h3 className="section-title">Carbon Transactions</h3>
             <p className="section-subtitle">{txns.length} records found</p>
           </div>
           <button onClick={() => setShowModal(true)} className="btn-primary">
-            <Plus className="w-4 h-4" /> Add Transaction
+            <Plus className="h-4 w-4" /> Add Transaction
           </button>
         </div>
         <div className="overflow-x-auto">
@@ -97,22 +208,28 @@ export function CarbonClient({ transactions, emissionFactors, stats, departments
                 <th className="table-header text-left">Activity</th>
                 <th className="table-header text-left">Factor</th>
                 <th className="table-header text-right">Qty</th>
-                <th className="table-header text-right">CO₂ (kg)</th>
+                <th className="table-header text-right">CO2 (kg)</th>
                 <th className="table-header text-left">Date</th>
                 <th className="table-header text-left">Status</th>
               </tr>
             </thead>
             <tbody>
-              {txns.map((t, i) => (
-                <motion.tr key={t.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.04 }} className="table-row">
-                  <td className="table-cell font-medium">{t.department?.name ?? "—"}</td>
-                  <td className="table-cell">{t.activity}</td>
-                  <td className="table-cell" style={{ color: "hsl(var(--foreground-muted))" }}>{t.emission_factor?.name ?? "—"}</td>
-                  <td className="table-cell text-right">{t.quantity.toLocaleString()} {t.unit}</td>
-                  <td className="table-cell text-right font-semibold" style={{ color: "hsl(var(--foreground))" }}>{t.co2_kg.toLocaleString()}</td>
-                  <td className="table-cell" style={{ color: "hsl(var(--foreground-muted))" }}>{t.date}</td>
+              {txns.map((transaction, index) => (
+                <motion.tr
+                  key={transaction.id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: index * 0.04 }}
+                  className="table-row"
+                >
+                  <td className="table-cell font-medium">{transaction.department?.name ?? "--"}</td>
+                  <td className="table-cell">{transaction.activity}</td>
+                  <td className="table-cell" style={{ color: "hsl(var(--foreground-muted))" }}>{transaction.emission_factor?.name ?? "--"}</td>
+                  <td className="table-cell text-right">{transaction.quantity.toLocaleString()} {transaction.unit}</td>
+                  <td className="table-cell text-right font-semibold" style={{ color: "hsl(var(--foreground))" }}>{transaction.co2_kg.toLocaleString()}</td>
+                  <td className="table-cell" style={{ color: "hsl(var(--foreground-muted))" }}>{transaction.date}</td>
                   <td className="table-cell">
-                    <span className={cn("badge capitalize", getStatusColor(t.status))}>{t.status}</span>
+                    <span className={cn("badge capitalize", getStatusColor(transaction.status))}>{transaction.status}</span>
                   </td>
                 </motion.tr>
               ))}
@@ -121,11 +238,10 @@ export function CarbonClient({ transactions, emissionFactors, stats, departments
         </div>
       </div>
 
-      {/* Emission Factors */}
       <div className="card overflow-hidden">
-        <div className="p-5 border-b" style={{ borderColor: "hsl(var(--border-muted))" }}>
+        <div className="border-b p-5" style={{ borderColor: "hsl(var(--border-muted))" }}>
           <h3 className="section-title">Emission Factors</h3>
-          <p className="section-subtitle">CO₂ per unit reference ({emissionFactors.length} factors)</p>
+          <p className="section-subtitle">CO2 per unit reference ({emissionFactors.length} factors)</p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -133,19 +249,25 @@ export function CarbonClient({ transactions, emissionFactors, stats, departments
               <tr className="border-b" style={{ borderColor: "hsl(var(--border-muted))", background: "hsl(var(--surface-overlay))" }}>
                 <th className="table-header text-left">Name</th>
                 <th className="table-header text-left">Category</th>
-                <th className="table-header text-right">CO₂/Unit</th>
+                <th className="table-header text-right">CO2/Unit</th>
                 <th className="table-header text-left">Unit</th>
                 <th className="table-header text-left">Status</th>
               </tr>
             </thead>
             <tbody>
-              {emissionFactors.map((f, i) => (
-                <motion.tr key={f.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.04 + 0.2 }} className="table-row">
-                  <td className="table-cell font-medium">{f.name}</td>
-                  <td className="table-cell"><span className="badge-blue badge">{f.category}</span></td>
-                  <td className="table-cell text-right font-mono" style={{ color: "#22c55e" }}>{f.co2_per_unit}</td>
-                  <td className="table-cell" style={{ color: "hsl(var(--foreground-muted))" }}>{f.unit}</td>
-                  <td className="table-cell"><span className={cn("badge capitalize", getStatusColor(f.status))}>{f.status}</span></td>
+              {emissionFactors.map((factor, index) => (
+                <motion.tr
+                  key={factor.id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: index * 0.04 + 0.2 }}
+                  className="table-row"
+                >
+                  <td className="table-cell font-medium">{factor.name}</td>
+                  <td className="table-cell"><span className="badge badge-blue">{factor.category}</span></td>
+                  <td className="table-cell text-right font-mono" style={{ color: "#22c55e" }}>{factor.co2_per_unit}</td>
+                  <td className="table-cell" style={{ color: "hsl(var(--foreground-muted))" }}>{factor.unit}</td>
+                  <td className="table-cell"><span className={cn("badge capitalize", getStatusColor(factor.status))}>{factor.status}</span></td>
                 </motion.tr>
               ))}
             </tbody>
@@ -153,49 +275,126 @@ export function CarbonClient({ transactions, emissionFactors, stats, departments
         </div>
       </div>
 
-      {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}>
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="card w-full max-w-md mx-4 p-6">
-            <div className="flex items-center justify-between mb-5">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="card mx-4 w-full max-w-md p-6"
+          >
+            <div className="mb-5 flex items-center justify-between">
               <h3 className="text-base font-bold" style={{ color: "hsl(var(--foreground))" }}>Add Carbon Transaction</h3>
-              <button onClick={() => setShowModal(false)} className="btn-ghost w-8 h-8 p-0 flex items-center justify-center">
-                <X className="w-4 h-4" />
+              <button onClick={resetModal} className="btn-ghost flex h-8 w-8 items-center justify-center p-0">
+                <X className="h-4 w-4" />
               </button>
             </div>
+
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-medium mb-1.5" style={{ color: "hsl(var(--foreground-muted))" }}>Department</label>
-                <select className="input" value={form.department_id} onChange={(e) => setForm({...form, department_id: e.target.value})}>
-                  {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+                <label className="mb-1.5 block text-xs font-medium" style={{ color: "hsl(var(--foreground-muted))" }}>Department</label>
+                <select className="input" value={form.department_id} onChange={(event) => setForm({ ...form, department_id: event.target.value })}>
+                  {departments.map((department) => <option key={department.id} value={department.id}>{department.name}</option>)}
                 </select>
               </div>
+
               <div>
-                <label className="block text-xs font-medium mb-1.5" style={{ color: "hsl(var(--foreground-muted))" }}>Activity</label>
-                <input className="input" value={form.activity} onChange={(e) => setForm({...form, activity: e.target.value})} placeholder="e.g. Diesel Fuel" />
+                <label className="mb-1.5 block text-xs font-medium" style={{ color: "hsl(var(--foreground-muted))" }}>Activity</label>
+                <input
+                  className="input"
+                  value={form.activity}
+                  onChange={(event) => setForm({ ...form, activity: event.target.value })}
+                  placeholder="e.g. Diesel Fuel"
+                />
               </div>
+
               <div>
-                <label className="block text-xs font-medium mb-1.5" style={{ color: "hsl(var(--foreground-muted))" }}>Emission Factor</label>
-                <select className="input" value={form.emission_factor_id} onChange={(e) => setForm({...form, emission_factor_id: e.target.value})}>
-                  {emissionFactors.map((f) => <option key={f.id} value={f.id}>{f.name} ({f.co2_per_unit} CO₂/{f.unit})</option>)}
+                <label className="mb-1.5 block text-xs font-medium" style={{ color: "hsl(var(--foreground-muted))" }}>Emission Factor</label>
+                <select className="input" value={form.emission_factor_id} onChange={(event) => setForm({ ...form, emission_factor_id: event.target.value })}>
+                  {emissionFactors.map((factor) => (
+                    <option key={factor.id} value={factor.id}>
+                      {factor.name} ({factor.co2_per_unit} CO2/{factor.unit})
+                    </option>
+                  ))}
                 </select>
               </div>
+
               <div>
-                <label className="block text-xs font-medium mb-1.5" style={{ color: "hsl(var(--foreground-muted))" }}>Quantity ({selectedFactor?.unit ?? "unit"})</label>
-                <input type="number" className="input" placeholder="e.g. 500" value={form.quantity} onChange={(e) => setForm({...form, quantity: e.target.value})} />
+                <label className="mb-1.5 block text-xs font-medium" style={{ color: "hsl(var(--foreground-muted))" }}>Receipt Upload</label>
+                <label
+                  className="flex cursor-pointer flex-col gap-3 rounded-2xl border border-dashed p-4 transition-colors hover:border-primary-500/50"
+                  style={{ borderColor: "hsl(var(--border-muted))", background: "hsl(var(--surface-overlay))" }}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-500/10 text-primary-500">
+                      {isAnalyzingReceipt ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium" style={{ color: "hsl(var(--foreground))" }}>
+                        {receiptName || "Upload receipt image"}
+                      </p>
+                      <p className="text-xs" style={{ color: "hsl(var(--foreground-muted))" }}>
+                        JPG, PNG, or WEBP. We will extract quantity, activity, date, and estimate CO2.
+                      </p>
+                    </div>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/jpg,image/webp"
+                    className="hidden"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      if (file) {
+                        void handleReceiptUpload(file);
+                      }
+                    }}
+                  />
+                </label>
+                {(receiptFile || receiptNote) && (
+                  <div className="mt-2 flex items-start gap-2 text-xs" style={{ color: "hsl(var(--foreground-muted))" }}>
+                    <FileImage className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                    <p>{receiptNote || `${receiptFile?.name} selected. Review the autofilled values.`}</p>
+                  </div>
+                )}
               </div>
+
               <div>
-                <label className="block text-xs font-medium mb-1.5" style={{ color: "hsl(var(--foreground-muted))" }}>Date</label>
-                <input type="date" className="input" value={form.date} onChange={(e) => setForm({...form, date: e.target.value})} />
+                <label className="mb-1.5 block text-xs font-medium" style={{ color: "hsl(var(--foreground-muted))" }}>
+                  Quantity ({selectedFactor?.unit ?? "unit"})
+                </label>
+                <input
+                  type="number"
+                  className="input"
+                  placeholder="e.g. 500"
+                  value={form.quantity}
+                  onChange={(event) => setForm({ ...form, quantity: event.target.value })}
+                />
               </div>
-              <div className="p-3 rounded-xl" style={{ background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.2)" }}>
-                <p className="text-xs" style={{ color: "hsl(var(--foreground-muted))" }}>Estimated CO₂</p>
+
+              <div>
+                <label className="mb-1.5 block text-xs font-medium" style={{ color: "hsl(var(--foreground-muted))" }}>Date</label>
+                <input
+                  type="date"
+                  className="input"
+                  value={form.date}
+                  onChange={(event) => setForm({ ...form, date: event.target.value })}
+                />
+              </div>
+
+              <div className="rounded-xl p-3" style={{ background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.2)" }}>
+                <p className="text-xs" style={{ color: "hsl(var(--foreground-muted))" }}>Estimated CO2</p>
                 <p className="text-lg font-bold" style={{ color: "#22c55e" }}>{estimatedCO2} kg</p>
               </div>
             </div>
-            <div className="flex gap-3 mt-6">
-              <button onClick={() => setShowModal(false)} className="btn-secondary flex-1">Cancel</button>
-              <button onClick={handleSubmit} className="btn-primary flex-1">Save Transaction</button>
+
+            <div className="mt-6 flex gap-3">
+              <button onClick={resetModal} className="btn-secondary flex-1">Cancel</button>
+              <button
+                onClick={handleSubmit}
+                disabled={isSaving || isAnalyzingReceipt}
+                className="btn-primary flex-1 disabled:pointer-events-none disabled:opacity-60"
+              >
+                {isSaving ? "Saving..." : "Save Transaction"}
+              </button>
             </div>
           </motion.div>
         </div>

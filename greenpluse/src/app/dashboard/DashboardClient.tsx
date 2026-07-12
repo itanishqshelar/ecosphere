@@ -1,6 +1,7 @@
 "use client";
 
 import { KPICard } from "@/components/dashboard/KPICard";
+import { useAuthStore } from "@/lib/auth/store";
 import { motion } from "framer-motion";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -38,6 +39,7 @@ interface Props {
 }
 
 export function DashboardClient({ kpis, carbonTrend, deptScores, leaderboard, notifications }: Props) {
+  const { user } = useAuthStore();
   const carbonChange = kpis.prevCarbonTons > 0
     ? ((kpis.totalCarbonTons - kpis.prevCarbonTons) / kpis.prevCarbonTons) * 100
     : null;
@@ -77,7 +79,9 @@ export function DashboardClient({ kpis, carbonTrend, deptScores, leaderboard, no
       <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
         className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold" style={{ color: "hsl(var(--foreground))" }}>Good morning, Admin 👋</h2>
+          <h2 className="text-xl font-bold" style={{ color: "hsl(var(--foreground))" }}>
+            Good morning, {user?.name || "Admin"}
+          </h2>
           <p className="text-sm mt-0.5" style={{ color: "hsl(var(--foreground-muted))" }}>
             ESG Score: <span className="font-semibold" style={{ color: "#22c55e" }}>{kpis.esgScore}/100</span> — Keep driving sustainability!
           </p>
