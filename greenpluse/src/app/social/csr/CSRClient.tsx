@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Plus, MapPin, Calendar, Users, Upload } from "lucide-react";
 import { cn, getStatusColor } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { toast } from "sonner";
 import { useState } from "react";
 import type { CsrActivity } from "@/lib/types";
@@ -14,6 +15,8 @@ interface Props {
 }
 
 export function CSRClient({ activities: initial, stats }: Props) {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
   const [activities, setActivities] = useState(initial);
   const [joining, setJoining] = useState<string | null>(null);
 
@@ -40,7 +43,7 @@ export function CSRClient({ activities: initial, stats }: Props) {
           <h2 className="text-xl font-bold" style={{ color: "hsl(var(--foreground))" }}>CSR Activities</h2>
           <p className="section-subtitle mt-0.5">Corporate Social Responsibility events</p>
         </div>
-        <button className="btn-primary"><Plus className="w-4 h-4" /> Create Event</button>
+        {isAdmin && <button className="btn-primary"><Plus className="w-4 h-4" /> Create Event</button>}
       </div>
 
       <div className="grid grid-cols-3 gap-4">

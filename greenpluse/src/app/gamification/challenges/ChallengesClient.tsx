@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Trophy, Clock, Users, Zap, Plus } from "lucide-react";
 import { cn, getStatusColor } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { toast } from "sonner";
 import { useState } from "react";
 import type { Challenge } from "@/lib/types";
@@ -18,6 +19,8 @@ interface Props {
 }
 
 export function ChallengesClient({ challenges: initial, stats }: Props) {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
   const [challenges, setChallenges] = useState(initial);
   const [joining, setJoining] = useState<string | null>(null);
 
@@ -46,7 +49,7 @@ export function ChallengesClient({ challenges: initial, stats }: Props) {
           <h2 className="text-xl font-bold" style={{ color: "hsl(var(--foreground))" }}>Sustainability Challenges</h2>
           <p className="section-subtitle mt-0.5">Engage employees with ESG challenges</p>
         </div>
-        <button className="btn-primary"><Plus className="w-4 h-4" /> New Challenge</button>
+        {isAdmin && <button className="btn-primary"><Plus className="w-4 h-4" /> New Challenge</button>}
       </div>
 
       <div className="grid grid-cols-3 gap-4">

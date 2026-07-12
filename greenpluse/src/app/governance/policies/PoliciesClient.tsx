@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Plus, CheckCircle, Clock, XCircle, Shield } from "lucide-react";
 import { cn, getStatusColor } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { toast } from "sonner";
 import { useState } from "react";
 import type { Policy } from "@/lib/types";
@@ -14,6 +15,8 @@ interface Props {
 }
 
 export function PoliciesClient({ policies: initial, stats }: Props) {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
   const [policies, setPolicies] = useState(initial);
 
   const handleAccept = async (policy: Policy) => {
@@ -60,7 +63,7 @@ export function PoliciesClient({ policies: initial, stats }: Props) {
             <h3 className="section-title">Company Policies</h3>
             <p className="section-subtitle">Manage and track employee acknowledgements</p>
           </div>
-          <button className="btn-primary"><Plus className="w-4 h-4" /> New Policy</button>
+          {isAdmin && <button className="btn-primary"><Plus className="w-4 h-4" /> New Policy</button>}
         </div>
 
         <div className="divide-y" style={{ borderColor: "hsl(var(--border-muted))" }}>
@@ -101,7 +104,7 @@ export function PoliciesClient({ policies: initial, stats }: Props) {
                 </div>
                 <div className="flex gap-2 mt-4">
                   <button className="btn-ghost text-xs py-1.5">View Details</button>
-                  <button className="btn-ghost text-xs py-1.5">Edit</button>
+                  {isAdmin && <button className="btn-ghost text-xs py-1.5">Edit</button>}
                   <button onClick={() => handleAccept(policy)} className="btn-primary text-xs py-1.5">Accept Policy</button>
                 </div>
               </motion.div>

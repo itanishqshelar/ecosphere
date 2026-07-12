@@ -3,8 +3,11 @@ import { mockEmissionFactors } from "@/lib/mock-data";
 import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
 import { cn, getStatusColor } from "@/lib/utils";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 export default function FactorsPage() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
   return (
     <div className="page-wrapper">
       <div className="flex items-center justify-between">
@@ -12,7 +15,7 @@ export default function FactorsPage() {
           <h2 className="text-xl font-bold text-[hsl(var(--foreground))]">Emission Factors</h2>
           <p className="text-sm text-[hsl(var(--foreground-muted))] mt-0.5">CO₂ reference data for calculations</p>
         </div>
-        <button className="btn-primary"><Plus className="w-4 h-4" /> Add Factor</button>
+        {isAdmin && <button className="btn-primary"><Plus className="w-4 h-4" /> Add Factor</button>}
       </div>
       <div className="card overflow-hidden">
         <table className="w-full">
@@ -35,10 +38,12 @@ export default function FactorsPage() {
                 <td className="table-cell text-[hsl(var(--foreground-muted))]">{f.unit}</td>
                 <td className="table-cell"><span className={cn("badge capitalize", getStatusColor(f.status))}>{f.status}</span></td>
                 <td className="table-cell">
-                  <div className="flex gap-2">
-                    <button className="btn-ghost text-xs py-1 px-2">Edit</button>
-                    <button className="btn-ghost text-xs py-1 px-2 text-danger-500">Delete</button>
-                  </div>
+                  {isAdmin && (
+                    <div className="flex gap-2">
+                      <button className="btn-ghost text-xs py-1 px-2">Edit</button>
+                      <button className="btn-ghost text-xs py-1 px-2 text-danger-500">Delete</button>
+                    </div>
+                  )}
                 </td>
               </motion.tr>
             ))}

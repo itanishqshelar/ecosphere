@@ -42,20 +42,25 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL("/auth/login?error=auth_callback_error", origin));
   }
 
-  // Ensure the employee profile exists. The session is now active, so this
-  // insert satisfies the employees RLS policy (auth.uid() = id).
-  await supabase.from("employees").upsert(
-    {
+  const adminEmails = ["tanishq.shelar365@gmail.com", "kundarvinayak2004@gmail.com"];
+  const email = data.user.email!.toLowerCase();
+  const assignedRole = adminEmails.includes(email) ? "admin" : "employee";
+
+  const { data: existing } = await supabase.from("employees").select("id").eq("email", email).single();
+
+  if (existing) {
+    await supabase.from("employees").update({ id: data.user.id, role: assignedRole }).eq("email", email);
+  } else {
+    await supabase.from("employees").insert({
       id: data.user.id,
-      name: data.user.user_metadata?.name ?? data.user.email!.split("@")[0],
-      email: data.user.email!,
-      role: "employee",
+      name: data.user.user_metadata?.name ?? email.split("@")[0],
+      email: email,
+      role: assignedRole,
       xp: 0,
       avatar: data.user.user_metadata?.avatar_url ?? null,
       department_id: null,
-    },
-    { onConflict: "id" }
-  );
+    });
+  }
 
   // Redirect to the dashboard with the session cookies attached. First-time
   // welcome handling lives in AuthProvider (localStorage), same as the

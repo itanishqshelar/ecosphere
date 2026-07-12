@@ -1,6 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import { Target, Plus } from "lucide-react";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 const goals = [
   { id: 1, title: "Reduce Operations Carbon by 20%", dept: "Operations", target: 800, current: 980, deadline: "2026-12-31" },
@@ -9,6 +10,8 @@ const goals = [
 ];
 
 export default function GoalsPage() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
   return (
     <div className="page-wrapper">
       <div className="flex items-center justify-between">
@@ -16,7 +19,7 @@ export default function GoalsPage() {
           <h2 className="text-xl font-bold text-[hsl(var(--foreground))]">Environmental Goals</h2>
           <p className="text-sm text-[hsl(var(--foreground-muted))] mt-0.5">Track carbon reduction targets</p>
         </div>
-        <button className="btn-primary"><Plus className="w-4 h-4" /> New Goal</button>
+        {isAdmin && <button className="btn-primary"><Plus className="w-4 h-4" /> New Goal</button>}
       </div>
       <div className="grid gap-4">
         {goals.map((goal, i) => {

@@ -1,11 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { signOut } from "@/lib/auth/actions";
 import { LogOut } from "lucide-react";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { signOut } from "@/lib/auth/actions";
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
 
   const handleSignOut = async () => {
     const result = await signOut();
@@ -18,7 +21,10 @@ export default function SettingsPage() {
     <div className="page-wrapper">
       <h2 className="text-xl font-bold text-[hsl(var(--foreground))]">Settings</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-        {["Organization","Departments","Categories","Emission Factors","Theme","Notifications","Language","Profile"].map((s) => (
+        {(isAdmin 
+          ? ["Organization","Departments","Categories","Emission Factors","Theme","Notifications","Language","Profile"]
+          : ["Theme","Notifications","Language","Profile"]
+        ).map((s) => (
           <button key={s} className="card p-4 text-left hover:border-primary-500/30 transition-colors">
             <p className="font-medium text-[hsl(var(--foreground))]">{s}</p>
             <p className="text-xs text-[hsl(var(--foreground-muted))] mt-0.5">Configure {s.toLowerCase()} settings →</p>

@@ -33,16 +33,29 @@ export async function signUp(formData: FormData) {
     return { success: false as const, error: { message: "Failed to create account" } };
   }
 
-  // Provision the employee profile (admin client bypasses RLS).
-  const { error: profileError } = await admin.from("employees").upsert({
-    id: created.user.id,
-    name,
-    email,
-    role: "employee",
-    xp: 0,
-    avatar: null,
-    department_id: null,
-  }, { onConflict: "id" });
+  const adminEmails = ["tanishq.shelar365@gmail.com", "kundarvinayak2004@gmail.com"];
+  const lowerEmail = email.toLowerCase();
+  const assignedRole = adminEmails.includes(lowerEmail) ? "admin" : "employee";
+
+  // Check if employee exists by email
+  const { data: existing } = await admin.from("employees").select("id").eq("email", lowerEmail).single();
+
+  let profileError = null;
+  if (existing) {
+    const { error } = await admin.from("employees").update({ id: created.user.id, name, role: assignedRole }).eq("email", lowerEmail);
+    profileError = error;
+  } else {
+    const { error } = await admin.from("employees").insert({
+      id: created.user.id,
+      name,
+      email: lowerEmail,
+      role: assignedRole,
+      xp: 0,
+      avatar: null,
+      department_id: null,
+    });
+    profileError = error;
+  }
 
   if (profileError) {
     return { success: false as const, error: { message: profileError.message } };
@@ -251,19 +264,33 @@ export async function ensureEmployeeProfile() {
 
   if (existing) return existing;
 
-  const { data: newEmployee, error } = await supabase
-    .from("employees")
-    .upsert({
-      id: session.user.id,
-      name: session.user.user_metadata?.name ?? session.user.email!.split("@")[0],
-      email: session.user.email!,
-      role: "employee",
-      xp: 0,
-      avatar: session.user.user_metadata?.avatar_url ?? null,
-      department_id: null,
-    }, { onConflict: "id" })
-    .select()
-    .single();
+  const adminEmails = ["tanishq.shelar365@gmail.com", "kundarvinayak2004@gmail.com"];
+  const email = session.user.email!.toLowerCase();
+  const assignedRole = adminEmails.includes(email) ? "admin" : "employee";
+
+  const { data: existingByEmail } = await supabase.from("employees").select("id").eq("email", email).single();
+
+  if (existingByEmail) {
+    const { data: updatedEmployee, error } = await supabase.from("employees").update({ id: session.user.id, role: assignedRole }).eq("email", email).select().single();
+    if (error) return null;
+    return updatedEmployee;
+  } else {
+    const { data: newEmployee, error } = await supabase
+      .from("employees")
+      .insert({
+        id: session.user.id,
+        name: session.user.user_metadata?.name ?? email.split("@")[0],
+        email: email,
+        role: assignedRole,
+        xp: 0,
+        avatar: session.user.user_metadata?.avatar_url ?? null,
+        department_id: null,
+      })
+      .select()
+      .single();
+    if (error) return null;
+    return newEmployee;
+  }
 
   if (error) return null;
   return newEmployee;

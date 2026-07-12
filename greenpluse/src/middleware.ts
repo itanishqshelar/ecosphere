@@ -33,6 +33,14 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
 
+  let role = 'employee';
+  if (user) {
+    const { data: employeeData } = await supabase.from('employees').select('role').eq('id', user.id).single();
+    if (employeeData) {
+      role = employeeData.role;
+    }
+  }
+
   const pathname = request.nextUrl.pathname;
 
   // Allow public routes
@@ -50,7 +58,20 @@ export async function middleware(request: NextRequest) {
 
   // Redirect authenticated users away from auth pages
   if (user && isPublicRoute && pathname !== "/") {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    const redirectPath = role === 'admin' ? '/dashboard' : '/employee';
+    return NextResponse.redirect(new URL(redirectPath, request.url));
+  }
+
+  // Protect admin routes
+  const isAdminRoute = pathname.startsWith('/dashboard');
+  if (user && isAdminRoute && role !== 'admin') {
+    return NextResponse.redirect(new URL('/employee', request.url));
+  }
+
+  // Protect employee routes
+  const isEmployeeRoute = pathname.startsWith('/employee');
+  if (user && isEmployeeRoute && role === 'admin') {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
   // Redirect unauthenticated users to login
