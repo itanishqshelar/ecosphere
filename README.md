@@ -1,7 +1,5 @@
 <div align="center">
-
-<img src="https://raw.githubusercontent.com/itanishqshelar/ecosphere/main/public/logo.png" alt="GreenPulse AI Logo" width="140"/>
-
+    
 # 🌿 GreenPulse AI
 
 ### **Enterprise ESG Intelligence Platform**
@@ -24,7 +22,7 @@ An AI-powered ESG (Environmental, Social & Governance) platform that helps organ
 
 ---
 
-### 🌍 Building Sustainable Enterprises Through AI
+###  Building Sustainable Enterprises Through AI
 
 *"Measure sustainability. Drive accountability. Inspire change."*
 
@@ -32,7 +30,7 @@ An AI-powered ESG (Environmental, Social & Governance) platform that helps organ
 
 ---
 
-# 📖 Overview
+#  Overview
 
 GreenPulse AI is an intelligent ESG management platform designed to simplify corporate sustainability reporting while actively engaging employees in environmental initiatives.
 
@@ -40,18 +38,18 @@ Instead of relying on spreadsheets and disconnected workflows, GreenPulse centra
 
 The platform empowers organizations to:
 
-- 🌱 Monitor environmental impact
-- 📊 Generate ESG insights
-- 🏢 Improve governance compliance
-- 🤝 Increase employee participation
-- 🏆 Reward sustainable behaviour
-- 📈 Build a measurable sustainability culture
+-  Monitor environmental impact
+-  Generate ESG insights
+-  Improve governance compliance
+-  Increase employee participation
+-  Reward sustainable behaviour
+-  Build a measurable sustainability culture
 
 ---
 
-# ✨ Core Features
+# Core Features
 
-## 📊 ESG Analytics Dashboard
+##  ESG Analytics Dashboard
 
 - Organization-wide ESG Score
 - Department-wise sustainability metrics
@@ -62,18 +60,18 @@ The platform empowers organizations to:
 
 ---
 
-## 🌍 Carbon Accounting
+##  Carbon Accounting
 
 Track and monitor emissions across multiple sources.
 
 Supported categories include:
 
-- ⚡ Electricity Consumption
-- 🚗 Employee Transportation
-- ✈️ Business Travel
-- ⛽ Diesel & Fuel Usage
-- 🏭 Manufacturing Emissions
-- 📦 Logistics
+-  Electricity Consumption
+-  Employee Transportation
+-  Business Travel
+-  Diesel & Fuel Usage
+-  Manufacturing Emissions
+-  Logistics
 
 Features
 
@@ -83,6 +81,11 @@ Features
 - Historical records
 
 ---
+
+## Screenshots
+<img width="1918" height="971" alt="image" src="https://github.com/user-attachments/assets/8bc3eb11-ae93-4c94-86d9-3d2d7cb58e78" />
+<img width="1915" height="970" alt="image" src="https://github.com/user-attachments/assets/eb6146fc-6ab1-4391-97db-582c85e26017" />
+
 
 ## 🛡 Governance & Compliance
 
@@ -98,7 +101,7 @@ Features
 
 ---
 
-## 🤝 CSR Management
+##  CSR Management
 
 Organize and manage CSR initiatives.
 
@@ -111,11 +114,11 @@ Organize and manage CSR initiatives.
 
 ---
 
-## 🏆 Sustainability Gamification
+##  Sustainability Gamification
 
 Increase employee engagement through gamification.
 
-### 🎯 Challenges
+###  Challenges
 
 Examples:
 
@@ -142,11 +145,11 @@ Employees earn XP for:
 
 Unlock achievements like
 
-- 🌱 Green Starter
-- 🌍 Eco Warrior
-- 🌿 Sustainability Champion
-- 🏆 Carbon Hero
-- 🌎 Earth Guardian
+-  Green Starter
+-  Eco Warrior
+-  Sustainability Champion
+-  Carbon Hero
+-  Earth Guardian
 
 ---
 
@@ -171,7 +174,7 @@ Redeem XP for rewards
 
 ---
 
-# 🤖 AI Capabilities
+#  AI Capabilities
 
 GreenPulse AI leverages intelligent automation to enhance sustainability management.
 
@@ -293,17 +296,17 @@ http://localhost:3000
 
 GreenPulse AI follows a modern enterprise design language.
 
-✨ Glassmorphism
+ Glassmorphism
 
-🎨 Tailwind CSS v4
+ Tailwind CSS v4
 
-⚡ Smooth Micro-interactions
+ Smooth Micro-interactions
 
-📱 Fully Responsive
+ Fully Responsive
 
-♿ Accessibility First
+ Accessibility First
 
-🌙 Modern Enterprise UI
+ Modern Enterprise UI
 
 ---
 
