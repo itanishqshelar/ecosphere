@@ -1,4 +1,6 @@
-"use client";
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 import { mockEmissionFactors } from "@/lib/mock-data";
 import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
@@ -53,3 +55,6 @@ export default function FactorsPage() {
     </div>
   );
 }
+
+
+

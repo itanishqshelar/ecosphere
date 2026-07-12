@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { cn, getStatusColor } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import type { CarbonTransaction, Department, EmissionFactor } from "@/lib/types";
@@ -50,6 +51,8 @@ function getErrorMessage(error: unknown, fallback: string) {
 }
 
 export function CarbonClient({ transactions, emissionFactors, stats, departments }: Props) {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
   const [showModal, setShowModal] = useState(false);
   const [txns, setTxns] = useState(transactions);
   const [form, setForm] = useState(() => createInitialForm(departments, emissionFactors));
@@ -58,6 +61,7 @@ export function CarbonClient({ transactions, emissionFactors, stats, departments
   const [receiptNote, setReceiptNote] = useState("");
   const [isAnalyzingReceipt, setIsAnalyzingReceipt] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [decisionLoadingId, setDecisionLoadingId] = useState<string | null>(null);
 
   const selectedFactor = emissionFactors.find((factor) => factor.id === form.emission_factor_id);
   const estimatedCO2 = selectedFactor && form.quantity
@@ -153,11 +157,38 @@ export function CarbonClient({ transactions, emissionFactors, stats, departments
 
       setTxns([data as CarbonTransaction, ...txns]);
       resetModal();
-      toast.success("Carbon transaction recorded!");
+      toast.success("Carbon transaction recorded for admin approval");
     } catch (err: unknown) {
       toast.error(getErrorMessage(err, "Failed to save"));
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleDecision = async (transactionId: string, status: "approved" | "rejected") => {
+    setDecisionLoadingId(transactionId);
+    try {
+      const response = await fetch("/api/carbon/transactions/status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ transactionId, status }),
+      });
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Failed to update transaction status");
+      }
+
+      setTxns((current) =>
+        current.map((transaction) =>
+          transaction.id === transactionId ? { ...transaction, status } : transaction,
+        ),
+      );
+      toast.success(`Transaction ${status}`);
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Failed to update transaction status"));
+    } finally {
+      setDecisionLoadingId(null);
     }
   };
 
@@ -211,6 +242,7 @@ export function CarbonClient({ transactions, emissionFactors, stats, departments
                 <th className="table-header text-right">CO2 (kg)</th>
                 <th className="table-header text-left">Date</th>
                 <th className="table-header text-left">Status</th>
+                {isAdmin && <th className="table-header text-right">Approval</th>}
               </tr>
             </thead>
             <tbody>
@@ -231,6 +263,30 @@ export function CarbonClient({ transactions, emissionFactors, stats, departments
                   <td className="table-cell">
                     <span className={cn("badge capitalize", getStatusColor(transaction.status))}>{transaction.status}</span>
                   </td>
+                  {isAdmin && (
+                    <td className="table-cell text-right">
+                      {transaction.status === "pending" ? (
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={() => void handleDecision(transaction.id, "rejected")}
+                            disabled={decisionLoadingId === transaction.id}
+                            className="btn-secondary px-3 py-1 text-xs disabled:pointer-events-none disabled:opacity-60"
+                          >
+                            Reject
+                          </button>
+                          <button
+                            onClick={() => void handleDecision(transaction.id, "approved")}
+                            disabled={decisionLoadingId === transaction.id}
+                            className="btn-primary px-3 py-1 text-xs disabled:pointer-events-none disabled:opacity-60"
+                          >
+                            {decisionLoadingId === transaction.id ? "Saving..." : "Approve"}
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-xs" style={{ color: "hsl(var(--foreground-muted))" }}>Reviewed</span>
+                      )}
+                    </td>
+                  )}
                 </motion.tr>
               ))}
             </tbody>

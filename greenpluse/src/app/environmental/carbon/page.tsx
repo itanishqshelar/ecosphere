@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 import { getCarbonTransactions, getEmissionFactors, getCarbonStats } from "@/lib/db/carbon";
 import { getDepartments } from "@/lib/db/employees";
 import { CarbonClient } from "./CarbonClient";
@@ -12,3 +14,4 @@ export default async function CarbonPage() {
 
   return <CarbonClient transactions={transactions} emissionFactors={emissionFactors} stats={stats} departments={departments} />;
 }
+

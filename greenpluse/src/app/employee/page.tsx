@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 import Link from "next/link";
 import { ArrowRight, Leaf, Shield, Trophy, Users } from "lucide-react";
 import { SignOutButton } from "@/components/auth/SignOutButton";
@@ -85,3 +87,4 @@ export default function EmployeeDashboard() {
     </div>
   );
 }
+

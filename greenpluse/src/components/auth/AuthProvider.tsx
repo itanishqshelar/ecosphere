@@ -67,9 +67,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         created_at: employee.created_at,
       });
     } else {
-      const { data: newEmployee } = await supabase
-        .from("employees")
-        .upsert({
+      const response = await fetch("/api/auth/employee", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           id: session.user.id,
           name: session.user.user_metadata?.name ?? session.user.email!.split("@")[0],
           email: session.user.email!,
@@ -77,9 +78,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           xp: 0,
           avatar: session.user.user_metadata?.avatar_url ?? null,
           department_id: null,
-        }, { onConflict: "id" })
-        .select()
-        .single();
+        }),
+      });
+      
+      const result = await response.json().catch(() => ({}));
+      const newEmployee = result.employee;
 
       if (newEmployee) {
         setUser({

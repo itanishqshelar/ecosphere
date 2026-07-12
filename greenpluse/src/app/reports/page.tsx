@@ -1,4 +1,6 @@
-"use client";
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 export default function ReportsPage() {
   return (
     <div className="page-wrapper">
@@ -21,3 +23,6 @@ export default function ReportsPage() {
     </div>
   );
 }
+
+
+

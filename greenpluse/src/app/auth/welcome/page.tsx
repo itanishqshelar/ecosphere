@@ -1,5 +1,6 @@
 "use client";
 
+
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -86,3 +87,6 @@ export default function WelcomePage() {
     </div>
   );
 }
+
+
+

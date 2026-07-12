@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 import { Navbar } from "@/components/landing/Navbar";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { ValueProposition } from "@/components/landing/ValueProposition";
@@ -35,3 +37,4 @@ export default function LandingPage() {
     </div>
   );
 }
+

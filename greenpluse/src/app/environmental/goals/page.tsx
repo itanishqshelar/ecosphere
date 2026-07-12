@@ -1,4 +1,6 @@
-"use client";
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 import { motion } from "framer-motion";
 import { Target, Plus } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -62,3 +64,6 @@ export default function GoalsPage() {
     </div>
   );
 }
+
+
+

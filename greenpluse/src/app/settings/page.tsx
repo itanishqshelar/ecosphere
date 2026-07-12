@@ -1,5 +1,6 @@
 "use client";
 
+
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -44,3 +45,6 @@ export default function SettingsPage() {
     </div>
   );
 }
+
+
+

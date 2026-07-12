@@ -1,5 +1,6 @@
 "use client";
 
+
 import { useActionState } from "react";
 import Link from "next/link";
 import { AuthLayout } from "@/components/auth/AuthLayout";
@@ -90,3 +91,6 @@ export default function ForgotPasswordPage() {
     </AuthLayout>
   );
 }
+
+
+

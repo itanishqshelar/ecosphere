@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 import { getBadgesWithEarned } from "@/lib/db/gamification";
 import { BadgesClient } from "./BadgesClient";
 
@@ -9,3 +11,4 @@ export default async function BadgesPage() {
   const badges = await getBadgesWithEarned(emp?.id);
   return <BadgesClient badges={badges} />;
 }
+
